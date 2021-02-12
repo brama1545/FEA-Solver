@@ -5,8 +5,8 @@ class Edge:
     def __init__(self, node1, node2):
         self.node1 = node1
         self.node2 = node2
-        self.xdel = self.node1.position[0] - self.node2.position[0]
-        self.ydel = self.node1.position[1] - self.node2.position[1]
+        self.xdel = self.node2.position[0] - self.node1.position[0]
+        self.ydel = self.node2.position[1] - self.node1.position[1]
         self.theta = math.atan2(self.ydel, self.xdel)
         self.length = self.getDist()
         self.stiffness = None
@@ -38,13 +38,11 @@ class Edge:
         r1 = np.array([1, 0, 0, -1, 0, 0])
         r2 = np.zeros(6)
         self.localK = self.stiffness * np.array([r1, r2, r2, -1 * r1, r2, r2])  # local stiffness matrix
-        # self.localK = self.stiffness * np.array([[1, -1], [-1, 1]])  # local stiffness matrix
         return self.localK
 
     def getGlobalK(self):
         intermediate = np.matmul(np.transpose(self.Tstar), self.getlocalK())
         return np.matmul(intermediate, self.Tstar)
-        #return self.transform * self.stiffness
 
     def getLocalDisp(self):
         return np.matmul(self.Tstar, self.getGlobalDisp())
