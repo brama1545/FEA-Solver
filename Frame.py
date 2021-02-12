@@ -3,7 +3,6 @@ import math
 import Beam3D
 import Bar3DPlanar
 
-
 class Edge:
     def __init__(self, node1, node2):
         self.node1 = node1
