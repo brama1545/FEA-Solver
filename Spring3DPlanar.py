@@ -5,8 +5,8 @@ class Edge:
     def __init__(self, node1, node2):
         self.node1 = node1
         self.node2 = node2
-        self.xdel = self.node1.position[0] - self.node2.position[0]
-        self.ydel = self.node1.position[1] - self.node2.position[1]
+        self.xdel = self.node2.position[0] - self.node1.position[0]
+        self.ydel = self.node2.position[1] - self.node1.position[1]
         self.theta = math.atan2(self.ydel, self.xdel)
         self.length = self.getDist()
         self.stiffness = None
