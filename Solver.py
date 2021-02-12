@@ -1,11 +1,11 @@
 import numpy as np
 import fileparserMaster as fp
 
-inFile = "InputMASTER.txt"
-sigFigs = 8
+inFile = "InputQuiz5.txt"
+sigFigs = 7
 dof = 0
 
-workEq = []
+workEq = np.array([20000, 0, -40000, 20000, -40000, -40000, 0, 40000, 80000, 0, 0, 0])
 
 
 def main():
@@ -72,7 +72,6 @@ def getSolnSpace(nodeList):
     Disp = []  # Global Displacement Vector
     DispPntrs = []  # "Pointers" to each unknown displacement. Keeps track of which variables disappear when BCs are applied
     Forces = []  # Applied forces
-    weq = np.array(workEq)
     for node in nodeList:
         BCs = node.disps
         appliedForces = node.Forces
@@ -83,7 +82,8 @@ def getSolnSpace(nodeList):
             else:
                 DispPntrs.append(BCs[dimension])  # Else: add it to the list of unknown
                 Disp.append(0)
-            Forces.append(appliedForces[dimension] + workEq[dimension])
+            Forces.append(appliedForces[dimension])
+    Forces = Forces + workEq
     print('\nForce Matrix For Governing Eqn')
     print(Forces)
 

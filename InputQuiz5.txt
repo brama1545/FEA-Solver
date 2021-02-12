@@ -1,0 +1,27 @@
+dof (kinetic, geometric)
+3 2
+Nodes (ID, CartesianX, CartesianY...)
+1 0 0
+2 0 8
+3 8 8
+4 8 0
+Springs (Node1, Node2, Stiffness)
+Bars (Node1, Node2, Area, E)
+Beams (Node1, Node2, MOI, E, PSI=optional)
+Frames (Node1, Node2, Area, MOI, E, PSI=optional)
+1 2 1e-2 1e-4 210e9
+2 3 1e-2 1e-4 210e9
+2 4 1e-2 1e-4 210e9
+Grid (Node1, Node2, J, MOI, E, G, PSI=optional)
+BC (Node, dof_index, disp)
+1 1 0
+1 2 0
+1 3 0
+3 1 0
+3 2 0
+3 3 0
+4 1 0
+4 2 0
+4 3 0
+Skew (Node, value)
+Forces (Node, ForceX, ForceY... MomentX, MomentY...)
