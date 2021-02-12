@@ -1,0 +1,15 @@
+Nodes
+1
+2
+3
+4
+Edges (Node Node Stiffness)
+1 2 200e3
+2 3 600e3
+3 4 400e3
+BCX
+1 0
+3 .02
+F
+2 -1000
+4 2000

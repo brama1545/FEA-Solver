@@ -1,0 +1,15 @@
+How to use this program:
+
+This program models static FEA problems consisting of bar and/or spring elements.
+
+The program consists of 5 files:
+A standard-format input file where individual nodes, elements, and element material properties can be entered.
+'BarElms2.py', the primary computer for the program, which computes the K matrix and uses Numpy matrix operations to solve the linear systems of equations.
+A fileparser which takes the input file and translates it for the computer to use. There is a different fileparser program for the types of elements or degrees of freedom your problem might require.
+An Edge class which models different types of elements, bar, spring, or beam, depending on the inputs given and the degrees of freedom of the problem.
+A Node class which contains the position and forces acting on different nodes.
+
+The program is designed to be as modular and flexible as possible. The only changes a user needs to make are to the dof (degrees of freedom) variable in 'BarElms2.py', as well as changing which fileparser to import depending on the type and dof of elements to be modeled. They also must manually edit the input file to describe their problem and ensure that the input file name in "BarElms2.py" corresponds to their input file name. Additionally output variables and changes to printing settings can be appended to the end of the "main" function as desired.
+Currently only composite structures of bars and springs can be analyzed, however future edits should allow composite structures of bars springs and beams. Additionally the use of skew or otherwise kinematically related boundary conditions is not supported, but will be in the future.
+
+As the quarter progresses, new features will be incorporated (I hope I've allowed myself the flexibility to make changes quickly). The only function of the "BarElms" program right now is to take each elements local matrix "kludge" it into a global stiffness matrix and solve the linear algebra after that. So assuming everything else we learn this quarter follows the same process of building up a global stiffness matrix from a local stiffness matrix, and using f = kd to get the solution, it should be a powerful way to solve a lot of different problems with different element types. Only the fileparser and edges files will need to be edited. The fileparsing need to adapt as element types get more and more complicated and require more fields in the input file, and the edge function contains all the information as to how local stiffness matrices and transformation matrices are defined.

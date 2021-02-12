@@ -1,0 +1,19 @@
+Nodes (ID x y)
+1 0 0
+2 -4 3
+3 -4 0
+4 0 -1
+Edges (Node Node A E)
+1 2 3.142e-4 80e9
+1 3 3.142e-4 80e9
+1 4 50e3
+BCX (Node Displacement)
+2 0
+3 0
+4 0
+BCY (Node Displacement)
+2 0
+3 0
+4 0
+F (Node x y)
+1 9.64e3 11.5e3
