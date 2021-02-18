@@ -1,5 +1,6 @@
 # FEA Solver
  An FEA solving code that takes in an input file describing a static system and outputs deflections and internal forces based on finite element properties.
+
 How to use this program:
 
 This program models static FEA problems consisting of bar, spring, and/or beam elements.
