@@ -11,14 +11,15 @@ workEq = np.array([20000, 0, -40000, 20000, -40000, -40000, 0, 40000, 80000, 0, 
 def main():
     global dof
     global workEq
-    np.set_printoptions(precision=sigFigs, suppress=True, linewidth=500)
+    np.set_printoptions(precision=0, suppress=True, linewidth=500)
     (nodeList, edgeList, dof) = fp.fileParse(inFile)  # parses input file
     numberNodes = len(nodeList)
     if len(workEq) == 0:
         workEq = np.zeros(numberNodes*dof)
     K = kludger(numberNodes, edgeList, nodeList)  # kludges global stiffness matrix together
-    print('Global K matrix')
-    print(K)
+    print('Global K matrix X 10^-3')
+    print(K/1000)
+    np.set_printoptions(precision=sigFigs, suppress=True, linewidth=500)
     (Disp, DispPntrs, Forces) = getSolnSpace(nodeList)  # Sets up f and u matrices depending on applied loads and BCs
     solvedDisps = dispSolver(K, Disp, DispPntrs, Forces)  # Solves for unknown displacements
     (allForces, allDisps) = forceSolver(K, nodeList)  # Multiplies K*displacements to find Force vector
@@ -28,13 +29,13 @@ def main():
     print('\nForces (NodeID, X, Y...)')
     print(formatOutput(allForces))
 
-    for edge in edgeList:
-        print("\nLocal K-Matrix for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
-        print(edge.getGlobalK())
+    # for edge in edgeList:
+    #    print("\nLocal K-Matrix for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
+    #    print(edge.getlocalK())
 
     for edge in edgeList:
-        print("\nLocal Elemental Forces for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
-        print(np.matmul(edge.getlocalK(), edge.getLocalDisp()))
+        print("\nLocal Elemental Forces for element connecting nodes %s, %s" % (edge.nodes[0].id, edge.nodes[1].id))
+        print(np.matmul(edge.getlocalK(), edge.getLocaldisp())/1000)
     # for edge in edgeList:
     #     print("\nAxial Stress for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
     #     print("{:e}".format(edge.getStress()))
@@ -47,14 +48,25 @@ def kludger(numberNodes, edgeList, nodeList):
     K = np.zeros((dof * numberNodes, dof * numberNodes))  # initial stiffness matrix
     for edge in edgeList:
         globalK = edge.getGlobalK()
-        node1index = dof * (edge.node1.id - 1)
-        node2index = dof * (edge.node2.id - 1)  # Trust the math here...each node takes up dof # of spaces in the matrix
-        for i in range(dof):
-            for j in range(dof):
-                K[node1index + i, node1index + j] += globalK[i, j]
-                K[node2index + i, node2index + j] += globalK[dof + i, dof + j]
-                K[node1index + i, node2index + j] += globalK[i, dof + j]
-                K[node2index + i, node1index + j] += globalK[dof + i, j]
+        for node1, node2 in edge:  # For each node pair in edge (see Element.py iterator)
+            node1index = dof * (node1.id - 1)
+            node2index = dof * (node2.id - 1)  # Trust the math here...each node takes up dof # of spaces in the matrix
+            start_i = dof*edge.i
+            end_i = start_i+dof
+            start_j = dof*edge.j
+            end_j = start_j + dof
+            K[node1index:node1index+dof, node2index:node2index+dof] += globalK[start_i:end_i, start_j:end_j]
+            K[node2index:node2index+dof, node1index:node1index+dof] += globalK[start_i:end_i, start_j:end_j]
+            # for i in range(dof):
+            #     for j in range(dof):
+            #         #K[node1index + i, node1index + j] += globalK[i, j]
+            #         #K[node2index + i, node2index + j] += globalK[dof*edge.i + i, dof*edge.j + j]
+            #         K[node1index + i, node2index + j] += globalK[dof*edge.i + i, dof*edge.j + j]
+            #         K[node2index + i, node1index + j] += globalK[dof*edge.i + i, dof*edge.j + j]
+
+        for i in range(len(edge)):
+            nodeindex = dof*(edge.nodes[i].id - 1)
+            K[nodeindex:nodeindex+dof, nodeindex:nodeindex+dof] += globalK[dof*i:dof*(i+1), dof*i:dof*(i+1)]
 
     skewTransform = np.identity(len(K))  # Takes into account skew boundary conditions
     for node in nodeList:

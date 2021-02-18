@@ -1,19 +1,14 @@
 import numpy as np
-import math
+import Element
 
 
-class Edge:
+class Edge(Element.TwoNodeElement):
     def __init__(self, node1, node2):
-        self.node1 = node1
-        self.node2 = node2
-        self.xdel = self.node2.position[0] - self.node1.position[0]
-        self.ydel = self.node2.position[1] - self.node1.position[1]
-        self.zdel = self.node2.position[2] - self.node1.position[2]
+        super().__init__(node1, node2)
+        self.xdel = node2.position[0] - node1.position[0]
+        self.ydel = node2.position[1] - node1.position[1]
+        self.zdel = node2.position[2] - node1.position[2]
         self.length = self.getDist()
-        self.area = None
-        self.E = None
-        self.stiffness = None
-        self.localK = []
         cX = self.xdel/self.length
         cY = self.ydel/self.length
         cZ = self.zdel/self.length
@@ -35,27 +30,10 @@ class Edge:
         return np.sqrt(xterm + yterm + zterm)
 
     def getlocalK(self):
-        r1 = np.array([1, 0, 0 -1, 0, 0])
+        r1 = np.array([1, 0, 0, -1, 0, 0])
         r2 = np.zeros(6)
         self.localK = self.stiffness * np.array([r1, r2, r2, -1 * r1, r2, r2])  # local stiffness matrix
         return self.localK
 
-    def getGlobalK(self):
-        intermediate = np.matmul(np.linalg.inv(self.Tstar), self.getlocalK())
-        return np.matmul(intermediate, self.Tstar)
-        # return self.transform * self.stiffness
-
-    def getLocalDisp(self):
-        return np.matmul(self.Tstar, self.getGlobalDisp())
-
-    def getGlobalDisp(self):
-        disp = np.concatenate((self.node1.getDisps(), self.node2.getDisps()))
-        return disp
-
     def getStress(self):
         return 0
-
-    def getIntForces(self):
-        d_prime = np.matmul(self.Tstar, self.getGlobalDisp())
-        force = np.matmul(self.getlocalK(), d_prime)
-        return [self.node1.id, self.node2.id], force

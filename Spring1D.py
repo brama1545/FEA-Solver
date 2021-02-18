@@ -3,8 +3,7 @@ import numpy as np
 
 class Edge:
     def __init__(self, node1, node2):
-        self.node1 = node1
-        self.node2 = node2
+        self.nodes = [node1, node2]
         self.stiffness = None
 
     def getlocalK(self):
@@ -15,7 +14,7 @@ class Edge:
         return self.getlocalK()
 
     def getGlobalDisp(self):
-        disp = np.concatenate((self.node1.getDisps, self.node2.getDisps))
+        disp = np.concatenate((self.nodes[0].getDisps, self.nodes[1].getDisps))
         return disp
 
     def getStress(self):
@@ -24,4 +23,4 @@ class Edge:
     def getIntForces(self):
         d_prime = self.getGlobalDisp()
         force = np.matmul(self.getlocalK(), d_prime)
-        return [self.node1.id, self.node2.id], force
+        return [self.nodes[0].id, self.nodes[1].id], force
