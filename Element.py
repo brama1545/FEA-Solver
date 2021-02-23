@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from abc import ABC, abstractmethod
 
 
@@ -25,9 +26,15 @@ class Element(ABC):
         else:
             return self.nodes[self.i], self.nodes[self.j]
 
+    def __repr__(self):
+        return self.nodes
+
     @abstractmethod
     def __len__(self):
         pass
+
+    def __getitem__(self, key):
+        return self.nodes[key].id
 
     @abstractmethod
     def getlocalK(self):
@@ -67,7 +74,7 @@ class TwoNodeElement(Element):
     def getIntForces(self):
         d_prime = np.matmul(self.Tstar, self.getGlobaldisp())
         force = np.matmul(self.getlocalK(), d_prime)
-        return [self.nodes[0].id, self.nodes[1].id], force
+        return force
 
     def getGlobaldisp(self):
         disp = np.concatenate((self.nodes[0].getDisps(), self.nodes[1].getDisps()))
@@ -84,7 +91,7 @@ class TwoNodeElement(Element):
         super().__init__()
         self.nodes = [node1, node2]
         self.Tstar = []
-        self.stress = None
+        self.stress = 0
         self.area = None
         self.E = None
         self.G = None
@@ -98,21 +105,39 @@ class TwoNodeElement(Element):
 
 class ThreeNodeElement(Element):
 
+    def __init__(self, nodei, nodej, nodem):
+        super().__init__()
+        self.nodes = [nodei, nodej, nodem]
+        self.elmArea = 0
+        self.poisson = 0
+        self.stress = 0
+        self.E = 0
+        self.t = 0
+        self.Tstar = []
+
+    @abstractmethod
     def getlocalK(self):
         pass
 
     def getGlobalK(self):
-        pass
+        print(self.getlocalK()/4*math.pow(10, -6))
+        print(self.Tstar)
+        intermediate = np.matmul(np.transpose(self.Tstar), self.getlocalK())
+        return np.matmul(intermediate, self.Tstar)
 
     def getIntForces(self):
-        pass
+        d_prime = np.matmul(self.Tstar, self.getGlobaldisp())
+        force = np.matmul(self.getlocalK(), d_prime)
+        return force
 
     def getGlobaldisp(self):
-        pass
+        disp = np.concatenate((self.nodes[0].getDisps(), self.nodes[1].getDisps(), self.nodes[2].getDisps()))
+        return disp
 
     def getLocaldisp(self):
-        pass
+        return np.matmul(self.Tstar, self.getGlobaldisp())
 
+    @abstractmethod
     def getStress(self):
         pass
 

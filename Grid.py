@@ -14,7 +14,6 @@ class Edge(Element.TwoNodeElement):
         self.tstiffness = None
         c = math.cos(self.theta)
         s = math.sin(self.theta)
-        self.stress = 0
         self.psi = 0
 
         self.Tstar = [[1, 0, 0, 0, 0, 0], [0,c,s,0,0,0], [0,-s,c,0,0,0], [0, 0, 0, 1, 0, 0], [0,0,0,0,c,s], [0,0,0,0,-s,c]]
@@ -49,7 +48,4 @@ class Edge(Element.TwoNodeElement):
         return self.localK
 
     def getStress(self):
-        if not(self.E is None):
-            c = np.matmul([-1, 1], self.Tstar) * self.E/self.length
-            self.stress = np.matmul(c, self.getGlobaldisp())
-        return self.stress
+        return 0

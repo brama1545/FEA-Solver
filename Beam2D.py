@@ -19,7 +19,6 @@ class Edge(Element.TwoNodeElement):
         x = np.concatenate((lam, neglam))
         y = np.concatenate((neglam, lam))
         self.transform = np.concatenate((x, y), 1)
-        self.stress = 0
         self.psi = 0
 
         self.Tstar = np.identity(4)
@@ -47,7 +46,4 @@ class Edge(Element.TwoNodeElement):
         return self.localK
 
     def getStress(self):
-        if not(self.E is None):
-            c = np.matmul([-1, 1], self.Tstar) * self.E/self.length
-            self.stress = np.matmul(c, self.getGlobaldisp())
-        return self.stress
+        return 0

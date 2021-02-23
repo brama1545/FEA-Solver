@@ -46,7 +46,6 @@ class Edge(Element.TwoNodeElement):
         return self.transform * self.stiffness
 
     def getStress(self):
-        if not(self.E is None):
-            c = np.matmul([-1, 1], self.compliance) * self.E/self.length
-            self.stress = np.matmul(c, self.getGlobaldisp())
+        c = np.matmul([-1, 1], self.compliance) * self.E/self.length
+        self.stress = np.matmul(c, self.getGlobaldisp())
         return self.stress

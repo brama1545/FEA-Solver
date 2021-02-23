@@ -25,6 +25,9 @@ class Node:
             return np.identity(self.dof)
 
     def applyF(self, F, dimension):
+        self.Forces[dimension] += F
+
+    def setF(self, F, dimension):
         self.Forces[dimension] = F
 
     def getDisps(self):

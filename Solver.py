@@ -1,24 +1,24 @@
 import numpy as np
 import fileparserMaster as fp
 
-inFile = "InputQuiz5.txt"
-sigFigs = 7
+inFile = "InputMASTER.txt"
+sigFigs = 5
 dof = 0
 
-workEq = np.array([20000, 0, -40000, 20000, -40000, -40000, 0, 40000, 80000, 0, 0, 0])
+workEq = []
 
 
 def main():
     global dof
     global workEq
-    np.set_printoptions(precision=0, suppress=True, linewidth=500)
+    np.set_printoptions(precision=2, suppress=True, linewidth=500)
     (nodeList, edgeList, dof) = fp.fileParse(inFile)  # parses input file
     numberNodes = len(nodeList)
     if len(workEq) == 0:
         workEq = np.zeros(numberNodes*dof)
     K = kludger(numberNodes, edgeList, nodeList)  # kludges global stiffness matrix together
-    print('Global K matrix X 10^-3')
-    print(K/1000)
+    print('Global K matrix X 10^-6')
+    print(K/1000000)
     np.set_printoptions(precision=sigFigs, suppress=True, linewidth=500)
     (Disp, DispPntrs, Forces) = getSolnSpace(nodeList)  # Sets up f and u matrices depending on applied loads and BCs
     solvedDisps = dispSolver(K, Disp, DispPntrs, Forces)  # Solves for unknown displacements
@@ -29,13 +29,18 @@ def main():
     print('\nForces (NodeID, X, Y...)')
     print(formatOutput(allForces))
 
-    # for edge in edgeList:
-    #    print("\nLocal K-Matrix for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
-    #    print(edge.getlocalK())
+    for edge in edgeList:
+        print("\nLocal K-Matrix for element connecting nodes %s, %s X 10^-6" % (edge[0], edge[1]))
+        print(edge.getlocalK()/100000)
 
     for edge in edgeList:
-        print("\nLocal Elemental Forces for element connecting nodes %s, %s" % (edge.nodes[0].id, edge.nodes[1].id))
+        print("\nLocal Elemental Forces for element connecting nodes %s, %s X 10^-3" % (edge[0], edge[1]))
         print(np.matmul(edge.getlocalK(), edge.getLocaldisp())/1000)
+
+    for edge in edgeList:
+        print("\nLocal stress for element connecting nodes %s, %s X 10^-3" % (edge[0], edge[1]))
+        print(edge.getStress())
+        print(edge.getPrincipalStress())
     # for edge in edgeList:
     #     print("\nAxial Stress for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
     #     print("{:e}".format(edge.getStress()))
@@ -56,7 +61,7 @@ def kludger(numberNodes, edgeList, nodeList):
             start_j = dof*edge.j
             end_j = start_j + dof
             K[node1index:node1index+dof, node2index:node2index+dof] += globalK[start_i:end_i, start_j:end_j]
-            K[node2index:node2index+dof, node1index:node1index+dof] += globalK[start_i:end_i, start_j:end_j]
+            K[node2index:node2index+dof, node1index:node1index+dof] += globalK[start_j:end_j, start_i:end_i]
             # for i in range(dof):
             #     for j in range(dof):
             #         #K[node1index + i, node1index + j] += globalK[i, j]
@@ -95,7 +100,6 @@ def getSolnSpace(nodeList):
                 DispPntrs.append(BCs[dimension])  # Else: add it to the list of unknown
                 Disp.append(0)
             Forces.append(appliedForces[dimension])
-    Forces = Forces + workEq
     print('\nForce Matrix For Governing Eqn')
     print(Forces)
 
@@ -141,7 +145,7 @@ def forceSolver(K, nodeList):
     i = 0
     for node in nodeList:
         for dimension in range(dof):
-            node.applyF(Forces[i], dimension)
+            node.setF(Forces[i], dimension)
             i += 1
 
     return Forces, Disp

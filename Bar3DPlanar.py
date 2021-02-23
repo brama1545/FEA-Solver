@@ -32,4 +32,4 @@ class Edge(Element.TwoNodeElement):
         return self.localK
 
     def getStress(self):
-        return self.stress
+        return self.getIntForces()[3]/self.area

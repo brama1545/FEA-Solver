@@ -10,6 +10,8 @@ import Beam3D
 import Frame
 import Grid
 import Node
+import ConstStrainTri
+import ConstStressTri
 
 
 def fileParse(inFile):
@@ -99,7 +101,7 @@ def fileParse(inFile):
         line = file.readline().split(' ')  # get next line for processing
 
     line = file.readline().split(' ')
-    while not (line[0] == 'BC'):  # read lines until 'BCX' comes up
+    while not (line[0] == 'ConstStrainTri'):  # read lines until 'BCX' comes up
         node1 = nodeList[int(line[0])]
         node2 = nodeList[int(line[1])]
         edgeList.append(Grid.Edge(node1, node2))
@@ -113,6 +115,32 @@ def fileParse(inFile):
             psi = line[6]
         edgeList[-1].setStiffness(J, moi, E, G, psi)  # add stiffness of edge
         line = file.readline().split(' ')  # get next line for processing
+
+    line = file.readline().split(' ')
+    while not (line[0] == 'ConstStressTri'):  # read lines until 'BCX' comes up
+        nodei = nodeList[int(line[0])]
+        nodej = nodeList[int(line[1])]
+        nodem = nodeList[int(line[2])]
+        edgeList.append(ConstStrainTri.Edge(nodei, nodej, nodem))
+
+        thickness = float(line[3])
+        E = float(line[4])
+        poisson = float(line[5])
+        edgeList[-1].setProperties(thickness, E, poisson)
+        line = file.readline().split(' ')
+
+    line = file.readline().split(' ')
+    while not (line[0] == 'BC'):  # read lines until 'BCX' comes up
+        nodei = nodeList[int(line[0])]
+        nodej = nodeList[int(line[1])]
+        nodem = nodeList[int(line[2])]
+        edgeList.append(ConstStressTri.Edge(nodei, nodej, nodem))
+
+        thickness = float(line[3])
+        E = float(line[4])
+        poisson = float(line[5])
+        edgeList[-1].setProperties(thickness, E, poisson)
+        line = file.readline().split(' ')
 
     line = file.readline().split(' ')
     while not (line[0] == 'Skew'):  # read lines until 'BCY' comes up "NODE, DOF_INDEX, VALUE"

@@ -36,3 +36,8 @@ class Edge(Element.TwoNodeElement):
     def getlocalK(self):
         self.localK = self.stiffness * np.array([[1, -1], [-1, 1]])  # local stiffness matrix
         return self.localK
+
+    def getStress(self):
+        cprime = self.E/self.length * np.matmul([-1, 1], self.Tstar)
+        self.stress = np.matmul(self.getGlobaldisp(), cprime)
+        return self.stress
