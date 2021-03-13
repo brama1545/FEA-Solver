@@ -155,12 +155,19 @@ def fileParse(inFile):
             node.skew.append(float(line[i]))
 
     line = file.readline().split(' ')
-    while not (line[0] == ''):  # read lines until EOF
+    while not (line[0] == 'Thermal'):  # read lines until Thermal Loading
         node = nodeList[int(line[0])]
         for dimension in range(kdof):
             node.applyF(float(line[dimension + 1]), dimension)
         line = file.readline().split(' ')
 
+    line = file.readline().split(' ')
+    while not (line[0] == ''):  # read lines until EOF
+        element = edgeList[int(line[0]) - 1]
+        delT = float(line[1])
+        alpha = float(line[2])
+        element.setThermalProperties(delT, alpha)
+        line = file.readline().split(' ')
     file.close()
     nodeList.remove(0)
     return nodeList, edgeList, kdof

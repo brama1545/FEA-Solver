@@ -21,3 +21,4 @@ BC (Node, dof_index, disp)
 3 2 .0025
 Skew (Node, value)
 Forces (Node, ForceX, ForceY... MomentX, MomentY...)
+Thermal Loads(Element, delT, alpha)

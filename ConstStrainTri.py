@@ -16,6 +16,11 @@ class Edge(Element.ThreeNodeElement):
         self.D = np.array([[1-poisson, poisson, 0], [poisson, 1-poisson, 0], [0, 0, (1-2*poisson)/2]])
         self.D *= E/(1+poisson)/(1-2*poisson)
 
+    def setThermalProperties(self, delT, alpha):
+        self.delT = delT
+        self.CTE = alpha
+        self.Etherm = (1+self.poisson)*np.array([self.CTE*self.delT, self.CTE*self.delT, 0])
+
     def getElmArea(self):
         positions = np.array([self.nodes[0].position, self.nodes[1].position, self.nodes[2].position])
         positions = np.concatenate((positions, [[1], [1], [1]]), 1)
@@ -38,7 +43,6 @@ class Edge(Element.ThreeNodeElement):
 
     def __init__(self, nodei, nodej, nodem):
         super().__init__(nodei, nodej, nodem)
-        self.D = []
         self.elmArea = self.getElmArea()
         self.xdel = nodej.position[0] - nodei.position[0]
         self.ydel = nodej.position[1] - nodei.position[1]

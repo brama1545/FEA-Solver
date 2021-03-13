@@ -1,5 +1,5 @@
 import numpy as np
-import math
+#import math
 from abc import ABC, abstractmethod
 
 
@@ -10,6 +10,9 @@ class Element(ABC):
         self.i = 0
         self.j = 0
         self.nodes = []
+        self.delT = 0
+        self.CTE = 0
+        self.Ftherm = []
 
     def __iter__(self):
         return self
@@ -36,6 +39,10 @@ class Element(ABC):
     def __getitem__(self, key):
         return self.nodes[key].id
 
+    def setThermalProperties(self, delT, alpha):
+        self.delT = delT
+        self.CTE = alpha
+
     @abstractmethod
     def getlocalK(self):
         pass
@@ -60,6 +67,9 @@ class Element(ABC):
     def getStress(self):
         pass
 
+    @abstractmethod
+    def getFtherm(self):
+        pass
 
 class TwoNodeElement(Element):
 
@@ -83,6 +93,14 @@ class TwoNodeElement(Element):
     def getLocaldisp(self):
         return np.matmul(self.Tstar, self.getGlobaldisp())
 
+    def getFtherm(self):
+        length = len(self.Tstar)
+        self.Ftherm = np.zeros(length)
+        term = self.E * self.area * self.CTE * self.delT
+        self.Ftherm[0] = -term
+        self.Ftherm[int(length/2)] = term
+        return np.matmul(self.Tstar, self.Ftherm)
+
     @abstractmethod
     def getStress(self):
         pass
@@ -92,8 +110,8 @@ class TwoNodeElement(Element):
         self.nodes = [node1, node2]
         self.Tstar = []
         self.stress = 0
-        self.area = None
-        self.E = None
+        self.area = 0
+        self.E = 0
         self.G = None
         self.J = None
         self.stiffness = None
@@ -113,17 +131,19 @@ class ThreeNodeElement(Element):
         self.stress = 0
         self.E = 0
         self.t = 0
-        self.Tstar = []
+        self.B = np.array([])
+        self.D = np.array([])
+        self.Tstar = np.array([])
+        self.Etherm = np.array([])
 
     @abstractmethod
     def getlocalK(self):
         pass
 
     def getGlobalK(self):
-        print(self.getlocalK()/4*math.pow(10, -6))
-        print(self.Tstar)
-        intermediate = np.matmul(np.transpose(self.Tstar), self.getlocalK())
-        return np.matmul(intermediate, self.Tstar)
+        return self.getlocalK()
+        #intermediate = np.matmul(np.transpose(self.Tstar), self.getlocalK())
+        #return np.matmul(intermediate, self.Tstar)
 
     def getIntForces(self):
         d_prime = np.matmul(self.Tstar, self.getGlobaldisp())
@@ -140,6 +160,11 @@ class ThreeNodeElement(Element):
     @abstractmethod
     def getStress(self):
         pass
+
+    def getFtherm(self):
+        intermediate = np.matmul(np.transpose(self.B), self.D)
+        self.Ftherm = self.elmArea * self.t * np.matmul(intermediate, self.Etherm)
+        return self.Ftherm
 
     def __len__(self):
         return 3

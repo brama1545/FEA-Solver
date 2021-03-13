@@ -1,26 +1,26 @@
 import numpy as np
 import fileparserMaster as fp
 
-inFile = "InputMASTER.txt"
-sigFigs = 5
+inFile = "InputFINAL5.txt"
+sigFigs = 6
 dof = 0
 
-workEq = []
+auxillaryForce = []
 
 
 def main():
     global dof
-    global workEq
-    np.set_printoptions(precision=2, suppress=True, linewidth=500)
+    global auxillaryForce
+    np.set_printoptions(precision=5, suppress=True, linewidth=500)
     (nodeList, edgeList, dof) = fp.fileParse(inFile)  # parses input file
     numberNodes = len(nodeList)
-    if len(workEq) == 0:
-        workEq = np.zeros(numberNodes*dof)
+    if len(auxillaryForce) == 0:
+        auxillaryForce = np.zeros(numberNodes * dof)
     K = kludger(numberNodes, edgeList, nodeList)  # kludges global stiffness matrix together
     print('Global K matrix X 10^-6')
     print(K/1000000)
     np.set_printoptions(precision=sigFigs, suppress=True, linewidth=500)
-    (Disp, DispPntrs, Forces) = getSolnSpace(nodeList)  # Sets up f and u matrices depending on applied loads and BCs
+    (Disp, DispPntrs, Forces) = getSolnSpace(nodeList, edgeList)  # Sets up f and u matrices depending on applied loads and BCs
     solvedDisps = dispSolver(K, Disp, DispPntrs, Forces)  # Solves for unknown displacements
     (allForces, allDisps) = forceSolver(K, nodeList)  # Multiplies K*displacements to find Force vector
 
@@ -30,23 +30,18 @@ def main():
     print(formatOutput(allForces))
 
     for edge in edgeList:
-        print("\nLocal K-Matrix for element connecting nodes %s, %s X 10^-6" % (edge[0], edge[1]))
+        print("\nLocal K-Matrix for element connecting nodes %s, %s, %s X 10^-6" % (edge[0], edge[1], edge[2]))
         print(edge.getlocalK()/100000)
 
     for edge in edgeList:
-        print("\nLocal Elemental Forces for element connecting nodes %s, %s X 10^-3" % (edge[0], edge[1]))
-        print(np.matmul(edge.getlocalK(), edge.getLocaldisp())/1000)
+        print("\nLocal Elemental Forces for element connecting nodes %s, %s, %s" % (edge[0], edge[1], edge[2]))
+        print(np.matmul(edge.getlocalK(), edge.getLocaldisp()))
 
     for edge in edgeList:
-        print("\nLocal stress for element connecting nodes %s, %s X 10^-3" % (edge[0], edge[1]))
-        print(edge.getStress())
-        print(edge.getPrincipalStress())
-    # for edge in edgeList:
-    #     print("\nAxial Stress for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
-    #     print("{:e}".format(edge.getStress()))
-    #     if not (edge.E is None):
-    #         print("Axial Strain for element connecting nodes %s, %s" % (edge.node1.id, edge.node2.id))
-    #         print("{:e}".format(edge.getStress()/edge.E))
+        print("\nLocal stress for element connecting nodes %s, %s, %s X in MPa" % (edge[0], edge[1], edge[2]))
+        print(edge.getStress()/1000000)
+        print("Principal stress for element connecting nodes %s, %s, %s in MPa" % (edge[0], edge[1], edge[2]))
+        print(edge.getPrincipalStress()/1000000)
 
 
 def kludger(numberNodes, edgeList, nodeList):
@@ -85,7 +80,8 @@ def kludger(numberNodes, edgeList, nodeList):
     return K
 
 
-def getSolnSpace(nodeList):
+def getSolnSpace(nodeList, edgeList):
+    global auxillaryForce
     Disp = []  # Global Displacement Vector
     DispPntrs = []  # "Pointers" to each unknown displacement. Keeps track of which variables disappear when BCs are applied
     Forces = []  # Applied forces
@@ -100,6 +96,15 @@ def getSolnSpace(nodeList):
                 DispPntrs.append(BCs[dimension])  # Else: add it to the list of unknown
                 Disp.append(0)
             Forces.append(appliedForces[dimension])
+    for element in edgeList:
+        Ftherm = element.getFtherm()
+        i = 0
+        for node in element.nodes:
+            nodeid = node.id
+            auxillaryForce[dof * (nodeid - 1):dof * nodeid] += Ftherm[dof*i: dof*(i+1)]
+            i += 1
+
+    Forces = Forces + auxillaryForce
     print('\nForce Matrix For Governing Eqn')
     print(Forces)
 
@@ -140,7 +145,7 @@ def forceSolver(K, nodeList):
     for node in nodeList:
         for dimension in range(dof):
             Disp.append(node.getDisps()[dimension])
-    Forces = np.matmul(K, Disp) - np.array(workEq)
+    Forces = np.matmul(K, Disp) - np.array(auxillaryForce)
 
     i = 0
     for node in nodeList:

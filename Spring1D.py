@@ -5,6 +5,7 @@ class Edge:
     def __init__(self, node1, node2):
         self.nodes = [node1, node2]
         self.stiffness = None
+        self.Tstar = np.array([[1, 0], [0, 1]])
 
     def getlocalK(self):
         localK = self.stiffness * np.array([[1, -1], [-1, 1]])  # local stiffness matrix

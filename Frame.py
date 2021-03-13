@@ -14,7 +14,6 @@ class Edge(Element.TwoNodeElement):
         self.length = self.getDist()
         c = math.cos(self.theta)
         s = math.sin(self.theta)
-        self.psi = 0
         self.bar = Bar3DPlanar.Edge(node1, node2)
         self.beam = Beam3D.Edge(node1, node2)
 
